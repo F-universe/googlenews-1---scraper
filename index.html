@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Search Google News</title>
+    <style>
+        #progress-bar {
+            width: 100%;
+            background-color: #f3f3f3;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-top: 20px;
+            height: 30px;
+            position: relative;
+        }
+        #progress-bar-fill {
+            height: 100%;
+            width: 0%;
+            background-color: #4caf50;
+            border-radius: 5px;
+            transition: width 0.25s;
+        }
+    </style>
+    <script>
+        function updateProgress(finished, total) {
+            const percentage = (finished / total) * 100;
+            const progressBarFill = document.getElementById('progress-bar-fill');
+            progressBarFill.style.width = percentage + '%';
+        }
+
+        function startDownload() {
+            const query = document.getElementById('query').value;
+            fetch(`/start_download?query=${query}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'started') {
+                        checkProgress();
+                    } else if (data.status === 'no_results') {
+                        alert("NESSUN ELEMENTO TROVATO");
+                    }
+                });
+        }
+
+        function checkProgress() {
+            fetch('/progress')
+                .then(response => response.json())
+                .then(data => {
+                    updateProgress(data.finished, data.total);
+                    if (data.finished < data.total) {
+                        setTimeout(checkProgress, 1000);
+                    }
+                });
+        }
+    </script>
+</head>
+<body>
+    <h1>Search Google News</h1>
+    <input type="text" id="query" placeholder="Enter a word or phrase" required>
+    <button onclick="startDownload()">Search</button>
+    <div id="progress-bar">
+        <div id="progress-bar-fill"></div>
+    </div>
+</body>
+</html>
